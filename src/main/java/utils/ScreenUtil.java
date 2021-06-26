@@ -1,8 +1,11 @@
 package utils;
 
+import net.coobird.thumbnailator.Thumbnails;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -13,15 +16,23 @@ import java.io.OutputStream;
  */
 
 public class ScreenUtil {
-    public static void getDesktopScreen(){
+    public static byte[] getDesktopScreen(){
+        byte[] byteArray = null;
         Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
         try {
             Robot robot = new Robot();
-            OutputStream out = new FileOutputStream("image.png");
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
             BufferedImage image = robot.createScreenCapture(screenRect);
-            ImageIO.write(image, "png", out);
+            Thumbnails.of(image)
+                    .width(1024)
+                    .outputFormat("jpg")
+                    .outputQuality(0.6f)
+                    .toOutputStream(out);
+            byteArray = out.toByteArray();
+            out.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return byteArray;
     }
 }
