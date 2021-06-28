@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  */
 
 public class SystemUtil {
-    private static String macAddressStr = null;
+    private static String MAC_ADDRESS = null;
     private final static String OS_NAME = System.getProperties().getProperty("os.name");
     private static final Pattern MAC_PATTERN = Pattern.compile(".*((:?[0-9a-f]{2}[-:]){5}[0-9a-f]{2}).*",
             Pattern.CASE_INSENSITIVE);
@@ -135,7 +135,7 @@ public class SystemUtil {
      * @return
      */
     public static String getMacAddress() {
-        if (macAddressStr == null || "".equals(macAddressStr)) {
+        if (MAC_ADDRESS == null || "".equals(MAC_ADDRESS)) {
             StringBuilder sb = new StringBuilder();
             try {
                 List<String> macList = getMacAddressList();
@@ -148,9 +148,9 @@ public class SystemUtil {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            macAddressStr = sb.toString();
+            MAC_ADDRESS = sb.toString();
         }
-        return macAddressStr;
+        return MAC_ADDRESS;
     }
 
 
