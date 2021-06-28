@@ -2,18 +2,19 @@ package ui.views;
 
 import network.ILoginListener;
 import network.SocketClient;
-import network.entity.Pc;
+import network.vo.Pc;
+import network.vo.Rule;
 import ui.FontManager;
 import utils.Constant;
 import utils.JsonUtil;
 import utils.SystemUtil;
-import utils.ThreadPoolUtil;
 
 import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author bobo
@@ -99,13 +100,17 @@ public class LoginFrame extends JFrame implements ILoginListener {
 
 
     @Override
-    public void onLogin(List<String[]> strList) {
-        if(strList!=null){
+    public void onLogin(byte result, String content) {
+        if(Constant.RESPONSE_SUCCEED == result){
+            List<Rule> ruleList = JsonUtil.parseList(content, Rule.class);
+            List<String[]> strList = ruleList.stream()
+                    .map(rule -> new String[]{rule.getRuleId().toString(),rule.getUsername(),rule.getPermission()})
+                    .collect(Collectors.toList());
             setVisible(false);
             MainFrame mainFrame = new MainFrame((ArrayList<String[]>) strList);
             mainFrame.setVisible(true);
         }else{
-            JOptionPane.showMessageDialog(null, "密码错误", "提示",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, content, "提示",JOptionPane.ERROR_MESSAGE);
         }
     }
 }

@@ -8,5 +8,5 @@ import java.util.List;
  */
 
 public interface ILoginListener {
-    void onLogin(List<String[]> strList);
+    void onLogin(byte result, String content);
 }

@@ -18,5 +18,8 @@ public class Constant {
     public static final byte DF = -1;
     public static final byte MF = -2;
 
+    public static final byte RESPONSE_SUCCEED = 20;
+    public static final byte RESPONSE_FAIL = 21;
+
     public static final int MAX_PKG_BYTE_LENGTH = 8*1024;
 }

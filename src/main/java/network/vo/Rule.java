@@ -1,4 +1,4 @@
-package network.entity;
+package network.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

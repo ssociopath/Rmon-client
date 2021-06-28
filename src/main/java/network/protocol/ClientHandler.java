@@ -5,15 +5,13 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import network.SocketClient;
-import network.entity.MsgPack;
-import network.entity.Rule;
-import ui.views.MainFrame;
+import network.vo.ResponsePacket;
+import network.vo.Rule;
 import utils.Constant;
 import utils.JsonUtil;
 import utils.ScreenUtil;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,9 +41,10 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        MsgPack msgPack = (MsgPack)msg;
-        byte type = msgPack.getType();
-        String content = new String(msgPack.getContent(),StandardCharsets.UTF_8);
+        ResponsePacket requestPacket = (ResponsePacket)msg;
+        byte type = requestPacket.getType();
+        byte result =  requestPacket.getResult();
+        String content = new String(requestPacket.getContent(),StandardCharsets.UTF_8);
         System.out.println("服务端响应："+content);
         switch (type){
             case Constant.IMAGE:{
@@ -55,16 +54,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 break;
             }
             case Constant.LOGIN:{
-                String failRes = "登录失败";
-                if(failRes.equals(content)){
-                    client.getILoginListener().onLogin(null);
-                }else{
-                    List<Rule> ruleList = JsonUtil.parseList(content, Rule.class);
-                    List<String[]> strList = ruleList.stream()
-                            .map(rule -> new String[]{rule.getRuleId().toString(),rule.getUsername(),rule.getPermission()})
-                            .collect(Collectors.toList());
-                    client.getILoginListener().onLogin(strList);
-                }
+                client.getILoginListener().onLogin(result,content);
                 break;
             }
             default: break;

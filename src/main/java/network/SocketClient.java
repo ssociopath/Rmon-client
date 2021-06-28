@@ -9,7 +9,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Data;
-import network.entity.MsgPack;
+import network.vo.RequestPacket;
 import network.protocol.ClientHandler;
 import network.protocol.MsgPackDecoder;
 import network.protocol.MsgPackEncoder;
@@ -30,10 +30,6 @@ public class SocketClient {
     public int pkgId=0;
 
     public ILoginListener iLoginListener;
-
-    public SocketClient() {
-        connect();
-    }
 
     public void connect(){
         NioEventLoopGroup workGroup = new NioEventLoopGroup(4);
@@ -77,13 +73,13 @@ public class SocketClient {
         if(size>max){
             while(index+max<size){
                 byte[] buffer = Arrays.copyOfRange(content, index, index + max);
-                channel.writeAndFlush(new MsgPack(type,pkgId,Constant.MF, buffer));
+                channel.writeAndFlush(new RequestPacket(type,pkgId,Constant.MF, buffer));
                 index+=max;
             }
             byte[] buffer = Arrays.copyOfRange(content, index, size);
-            channel.writeAndFlush(new MsgPack(type,pkgId,Constant.DF, buffer));
+            channel.writeAndFlush(new RequestPacket(type,pkgId,Constant.DF, buffer));
         }else{
-            channel.writeAndFlush(new MsgPack(type,pkgId,Constant.DF, content));
+            channel.writeAndFlush(new RequestPacket(type,pkgId,Constant.DF, content));
         }
         pkgId++;
         if (type==Constant.LOGOUT){

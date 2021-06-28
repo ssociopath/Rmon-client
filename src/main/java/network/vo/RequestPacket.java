@@ -1,4 +1,4 @@
-package network.entity;
+package network.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +14,7 @@ import org.msgpack.annotation.Message;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MsgPack {
+public class RequestPacket {
     private byte type;
     private int id;
     private byte flag;

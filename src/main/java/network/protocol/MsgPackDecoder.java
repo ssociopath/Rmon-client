@@ -3,7 +3,7 @@ package network.protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import network.entity.MsgPack;
+import network.vo.ResponsePacket;
 import org.msgpack.MessagePack;
 
 import java.util.List;
@@ -21,6 +21,6 @@ public class MsgPackDecoder extends MessageToMessageDecoder<ByteBuf> {
         array=new byte[length];
         msg.getBytes(msg.readerIndex(), array,0,length);
         MessagePack msgpack=new MessagePack();
-        out.add(msgpack.read(array, MsgPack.class));
+        out.add(msgpack.read(array, ResponsePacket.class));
     }
 }
