@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Rule {
     private Integer ruleId;
-    private String username;
+    private String account;
     private String permission;
 }

@@ -30,6 +30,7 @@ public class SocketClient {
     public int pkgId=0;
 
     public ILoginListener iLoginListener;
+    public IRuleListener iRuleListener;
 
     public void connect(){
         NioEventLoopGroup workGroup = new NioEventLoopGroup(4);

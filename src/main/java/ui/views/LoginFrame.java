@@ -12,9 +12,7 @@ import utils.SystemUtil;
 import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author bobo
@@ -103,11 +101,11 @@ public class LoginFrame extends JFrame implements ILoginListener {
     public void onLogin(byte result, String content) {
         if(Constant.RESPONSE_SUCCEED == result){
             List<Rule> ruleList = JsonUtil.parseList(content, Rule.class);
-            List<String[]> strList = ruleList.stream()
-                    .map(rule -> new String[]{rule.getRuleId().toString(),rule.getUsername(),rule.getPermission()})
-                    .collect(Collectors.toList());
+            String[][] tableVales = ruleList.stream()
+                    .map(rule -> new String[]{rule.getRuleId().toString(),rule.getAccount(),rule.getPermission()})
+                    .toArray(String[][]::new);
             setVisible(false);
-            MainFrame mainFrame = new MainFrame((ArrayList<String[]>) strList);
+            MainFrame mainFrame = new MainFrame(tableVales,socketClient);
             mainFrame.setVisible(true);
         }else{
             JOptionPane.showMessageDialog(null, content, "提示",JOptionPane.ERROR_MESSAGE);

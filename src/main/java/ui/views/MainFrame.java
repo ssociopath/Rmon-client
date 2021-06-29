@@ -1,31 +1,50 @@
 package ui.views;
 
+import network.IRuleListener;
+import network.SocketClient;
+import network.vo.Rule;
+import utils.Constant;
+import utils.JsonUtil;
+import utils.ThreadPoolUtil;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author bobo
  * @date 2021/6/27
  */
 
-public class MainFrame extends JFrame{
+public class MainFrame extends JFrame implements IRuleListener {
     private String[][] tableVales;
     private String[] columnNames;
+    private String[] permissions;
+    private SocketClient socketClient;
 
     private DefaultTableModel tableModel;
     private JTable table;
     private JTextField chosenUsername;
-    private JTextField chosenPermission;
+    private JComboBox<String> chosenPermission;
     private JButton addButton;
     private JButton updateButton;
     private JButton delButton;
+
+    public MainFrame(String[][] tableVales, SocketClient socketClient) {
+        super();
+        this.socketClient = socketClient;
+        socketClient.setIRuleListener(this);
+        this.tableVales = tableVales;
+        columnNames = new String[]{"权限号","主控用户","权限等级"};
+        permissions = new String[]{"允许操作","允许监控"};
+        initView();
+        event();
+    }
 
     public void initView(){
         setTitle("用户权限管理");
@@ -50,7 +69,8 @@ public class MainFrame extends JFrame{
         chosenUsername = new JTextField(10);
         panel.add(chosenUsername);
         panel.add(new JLabel("权限: "));
-        chosenPermission = new JTextField(10);
+        chosenPermission = new JComboBox<>(permissions);
+        chosenPermission.setBackground(Color.white);
         panel.add(chosenPermission);
 
         addButton = new JButton("添加");
@@ -69,16 +89,13 @@ public class MainFrame extends JFrame{
                 Object oa = tableModel.getValueAt(selectedRow, 1);
                 Object ob = tableModel.getValueAt(selectedRow, 2);
                 chosenUsername.setText(oa.toString());  //给文本框赋值
-                chosenPermission.setText(ob.toString());
+                chosenPermission.setSelectedItem(ob.toString());
             }
         });
 
         addButton.addActionListener(e -> {
-            String []rowValues = {chosenUsername.getText(), chosenPermission.getText()};
-            tableModel.addRow(rowValues);
-            int rowCount = table.getRowCount() +1;
-            chosenUsername.setText("A"+rowCount);
-            chosenPermission.setText("B"+rowCount);
+            Rule rule = new Rule(null, chosenUsername.getText(), Objects.requireNonNull(chosenPermission.getSelectedItem()).toString());
+            socketClient.sendData(Constant.DATA_UPDATE,JsonUtil.toJsonString(rule).getBytes());
         });
 
 
@@ -86,9 +103,10 @@ public class MainFrame extends JFrame{
             int selectedRow = table.getSelectedRow();
             if(selectedRow!= -1)
             {
-                //修改指定的值：
-                tableModel.setValueAt(chosenUsername.getText(), selectedRow, 1);
-                tableModel.setValueAt(chosenPermission.getText(), selectedRow, 2);
+                Rule rule = new Rule(new Integer(tableModel.getValueAt(selectedRow,0).toString()),
+                        chosenUsername.getText(),
+                        Objects.requireNonNull(chosenPermission.getSelectedItem()).toString());
+                socketClient.sendData(Constant.DATA_UPDATE,JsonUtil.toJsonString(rule).getBytes());
             }
         });
 
@@ -96,18 +114,27 @@ public class MainFrame extends JFrame{
             int selectedRow = table.getSelectedRow();
             if(selectedRow!=-1)
             {
-                tableModel.removeRow(selectedRow);
+                socketClient.sendData(Constant.DATA_DELETE,tableModel.getValueAt(selectedRow,0).toString().getBytes());
             }
         });
 
     }
 
-    public MainFrame(ArrayList<String[]> strList) {
-        super();
-        tableVales = strList.toArray(new String[0][]);
-        columnNames = new String[]{"权限号","主控用户","权限等级"};
-        initView();
-        event();
-    }
 
+    @Override
+    public void onChange(byte result, String content) {
+        ThreadPoolUtil.executor(()->{
+            if(Constant.RESPONSE_SUCCEED == result){
+                List<Rule> ruleList = JsonUtil.parseList(content, Rule.class);
+                System.out.println(ruleList.toString());
+                tableVales = ruleList.stream()
+                        .map(rule -> new String[]{rule.getRuleId().toString(), rule.getAccount(), rule.getPermission()})
+                        .toArray(String[][]::new);
+                tableModel = new DefaultTableModel(tableVales,columnNames);
+                table.setModel(tableModel);
+            }else{
+                JOptionPane.showMessageDialog(null, content, "提示",JOptionPane.ERROR_MESSAGE);
+            }
+        });
+    }
 }
