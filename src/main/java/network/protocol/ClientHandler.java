@@ -79,7 +79,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             }
             case Constant.RES_UPDATE:{
                 WsMessage wsMessage = JsonUtil.parseObject(content, WsMessage.class);
-                size = Integer.parseInt(wsMessage.getContent());
+                size = Integer.parseInt(wsMessage.getContent())*16/9;
                 break;
             }
             case Constant.DATA_UPDATE:
@@ -95,6 +95,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
+        client.getILoginListener().onFail();
         client.doConnect();
     }
 }

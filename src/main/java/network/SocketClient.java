@@ -58,7 +58,7 @@ public class SocketClient {
             return;
         }
 
-        bootstrap.connect("127.0.0.1", 5555).addListener(future -> {
+        bootstrap.connect("bobooi.com", 5555).addListener(future -> {
             if (future.isSuccess()) {
                 channel = ((ChannelFuture) future).channel();
                 System.out.println("连接成功!");

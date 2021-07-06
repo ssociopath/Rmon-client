@@ -21,6 +21,7 @@ import java.util.List;
 
 public class LoginFrame extends JFrame implements ILoginListener {
     private final SocketClient socketClient;
+    private MainFrame mainFrame;
 
     private final JLabel frameLabel;
     private final Container container;
@@ -105,10 +106,16 @@ public class LoginFrame extends JFrame implements ILoginListener {
                     .map(rule -> new String[]{rule.getRuleId().toString(),rule.getAccount(),rule.getPermission()})
                     .toArray(String[][]::new);
             setVisible(false);
-            MainFrame mainFrame = new MainFrame(tableVales,socketClient);
+            mainFrame = new MainFrame(tableVales,socketClient);
             mainFrame.setVisible(true);
         }else{
             JOptionPane.showMessageDialog(null, content, "提示",JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    @Override
+    public void onFail() {
+        setVisible(true);
+        mainFrame.setVisible(false);
     }
 }

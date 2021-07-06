@@ -7,4 +7,5 @@ package network;
 
 public interface ILoginListener {
     void onLogin(byte result, String content);
+    void onFail();
 }
