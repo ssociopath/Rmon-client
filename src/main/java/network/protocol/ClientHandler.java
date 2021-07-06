@@ -5,18 +5,12 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import network.SocketClient;
+
 import network.vo.ResponsePacket;
 import network.vo.WsMessage;
-import utils.Constant;
-import utils.JsonUtil;
-import utils.ScreenUtil;
-import utils.ThreadPoolUtil;
+import utils.*;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.Future;
 
 
 /**
@@ -26,7 +20,8 @@ import java.util.concurrent.Future;
 
 public class ClientHandler extends ChannelInboundHandlerAdapter {
     private final SocketClient client;
-    private boolean isSend;
+    private volatile boolean isSend;
+    private volatile int size = Constant.DEFAULT_SIZE;
 
 
     public ClientHandler(SocketClient socketClient) {
@@ -54,6 +49,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         byte result =  requestPacket.getResult();
         String content = new String(requestPacket.getContent(),StandardCharsets.UTF_8);
         System.out.println("服务端响应："+content);
+
         switch (type){
             case Constant.LOGIN:{
                 client.getILoginListener().onLogin(result,content);
@@ -64,14 +60,26 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 break;
             }
             case Constant.IMAGE:{
+                WsMessage wsMessage = JsonUtil.parseObject(content, WsMessage.class);
                 isSend = true;
                 ThreadPoolUtil.executor(()->{
-                    WsMessage wsMessage = JsonUtil.parseObject(content,WsMessage.class);
                     while (isSend){
-                        wsMessage.setContent(Base64.getEncoder().encodeToString(ScreenUtil.getDesktopScreen()));
+                        wsMessage.setContent(new String(ScreenUtil.getDesktopScreen(size), StandardCharsets.ISO_8859_1));
                         client.sendData(Constant.IMAGE, JsonUtil.toJsonString(wsMessage).getBytes(StandardCharsets.UTF_8));
+                        wsMessage.setContent(JsonUtil.toJsonString(SystemUtil.getAllTasks()));
+                        client.sendData(Constant.TASK, JsonUtil.toJsonString(wsMessage).getBytes(StandardCharsets.UTF_8));
                     }
                 });
+                break;
+            }
+            case Constant.CMD: {
+                WsMessage wsMessage = JsonUtil.parseObject(content, WsMessage.class);
+                SystemUtil.exeCmd(wsMessage.getContent());
+                break;
+            }
+            case Constant.RES_UPDATE:{
+                WsMessage wsMessage = JsonUtil.parseObject(content, WsMessage.class);
+                size = Integer.parseInt(wsMessage.getContent());
                 break;
             }
             case Constant.DATA_UPDATE:

@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WsMessage {
-    private String fromUserId;
-    private String toUserId;
     private String type;
+    private String from;
+    private String to;
     private String content;
 }

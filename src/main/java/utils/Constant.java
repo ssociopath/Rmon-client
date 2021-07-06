@@ -16,8 +16,11 @@ public class Constant {
     public static final byte LOGIN = 2;
     public static final byte LOGOUT = 3;
     public static final byte IMAGE = 4;
-    public static final byte DATA_UPDATE = 5;
-    public static final byte DATA_DELETE = 6;
+    public static final byte TASK = 5;
+    public static final byte DATA_UPDATE = 6;
+    public static final byte DATA_DELETE = 7;
+    public static final byte RES_UPDATE = 8;
+    public static final byte CMD = 9;
 
     public static final byte DF = -1;
     public static final byte MF = -2;
@@ -26,4 +29,6 @@ public class Constant {
     public static final byte RESPONSE_FAIL = 21;
 
     public static final int MAX_PKG_BYTE_LENGTH = 8*1024;
+
+    public static final int DEFAULT_SIZE = 1024;
 }

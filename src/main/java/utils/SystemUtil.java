@@ -1,9 +1,12 @@
 package utils;
 
+import network.vo.Task;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,83 +22,99 @@ public class SystemUtil {
     private static final Pattern MAC_PATTERN = Pattern.compile(".*((:?[0-9a-f]{2}[-:]){5}[0-9a-f]{2}).*",
             Pattern.CASE_INSENSITIVE);
 
-    public static int getAllTasks(){
-        List<String> taskList = new ArrayList<>();
-        Process process=null;
+    public static List<Task> getAllTasks(){
+        List<Task> taskList = new ArrayList<>();
+        Process process =null;
         int count=0;
         try {
             if (OS_NAME.startsWith(Constant.LINUX)) {
                 BufferedReader reader =null;
-                process = Runtime.getRuntime().exec("ps -ef");
+                process = Runtime.getRuntime().exec("top -b -n 1");
                 reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line = null;
+                int index = 0;
                 while((line = reader.readLine())!=null){
-                    System.out.println(line);
+                    if(index>6){
+                        String[] lineStr = line.split("\\s+");
+                        taskList.add(Task.builder()
+                                .pid(lineStr[1])
+                                .name(lineStr[12])
+                                .user(lineStr[2])
+                                .mem(lineStr[10]+"%")
+                                .cpu(lineStr[11])
+                                .build());
+                    }else{
+                        index++;
+                    }
+
+
                     count++;
                 }
+                reader.close();
             } else {
                 process = Runtime.getRuntime().exec("taskList");
                 BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String s = "";
-                while ((s = br.readLine()) != null) {
-                    if ("".equals(s)) {
-                        continue;
-                    }
-                    taskList.add(s+" ");
-                }
-
-                // 获取每列最长的长度
-                String maxRow = taskList.get(1) + "";
-                String[] maxCol = maxRow.split(" ");
-                // 定义映像名称数组
-                String[] taskName = new String[taskList.size()];
-                // 定义 PID数组
-                String[] taskPid = new String[taskList.size()];
-                // 会话名数组
-                String[] taskSessionName = new String[taskList.size()];
-                // 会话#数组
-                String[] taskSession = new String[taskList.size()];
-                // 内存使用 数组
-                String[] taskNec = new String[taskList.size()];
-                for (int i = 0; i < taskList.size(); i++) {
-                    String data = taskList.get(i) + "";
-                    for (int j = 0; j < maxCol.length; j++) {
-                        switch (j) {
-                            case 0:
-                                taskName[i]=data.substring(0, maxCol[j].length()+1);
-                                data=data.substring(maxCol[j].length()+1);
-                                break;
-                            case 1:
-                                taskPid[i]=data.substring(0, maxCol[j].length()+1);
-                                data=data.substring(maxCol[j].length()+1);
-                                break;
-                            case 2:
-                                taskSessionName[i]=data.substring(0, maxCol[j].length()+1);
-                                data=data.substring(maxCol[j].length()+1);
-                                break;
-                            case 3:
-                                taskSession[i]=data.substring(0, maxCol[j].length()+1);
-                                data=data.substring(maxCol[j].length()+1);
-                                break;
-                            case 4:
-                                taskNec[i]=data;
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-
-                for (int i = 0; i < taskNec.length; i++) {
-                    //打印进程列表
-                    System.out.println(taskName[i]+" "+taskPid[i]+" "+taskSessionName[i]+" "+taskSession[i]+" "+taskNec[i]);
-                    count++;
-                }
+                //TODO WINDOWS端
+//                while ((s = br.readLine()) != null) {
+//                    if ("".equals(s)) {
+//                        continue;
+//                    }
+//                    taskList.add(s+" ");
+//                }
+//
+//                // 获取每列最长的长度
+//                String maxRow = taskList.get(1) + "";
+//                String[] maxCol = maxRow.split(" ");
+//                // 定义映像名称数组
+//                String[] taskName = new String[taskList.size()];
+//                // 定义 PID数组
+//                String[] taskPid = new String[taskList.size()];
+//                // 会话名数组
+//                String[] taskSessionName = new String[taskList.size()];
+//                // 会话#数组
+//                String[] taskSession = new String[taskList.size()];
+//                // 内存使用 数组
+//                String[] taskNec = new String[taskList.size()];
+//                for (int i = 0; i < taskList.size(); i++) {
+//                    String data = taskList.get(i) + "";
+//                    for (int j = 0; j < maxCol.length; j++) {
+//                        switch (j) {
+//                            case 0:
+//                                taskName[i]=data.substring(0, maxCol[j].length()+1);
+//                                data=data.substring(maxCol[j].length()+1);
+//                                break;
+//                            case 1:
+//                                taskPid[i]=data.substring(0, maxCol[j].length()+1);
+//                                data=data.substring(maxCol[j].length()+1);
+//                                break;
+//                            case 2:
+//                                taskSessionName[i]=data.substring(0, maxCol[j].length()+1);
+//                                data=data.substring(maxCol[j].length()+1);
+//                                break;
+//                            case 3:
+//                                taskSession[i]=data.substring(0, maxCol[j].length()+1);
+//                                data=data.substring(maxCol[j].length()+1);
+//                                break;
+//                            case 4:
+//                                taskNec[i]=data;
+//                                break;
+//                            default:
+//                                break;
+//                        }
+//                    }
+//                }
+//
+//                for (int i = 0; i < taskNec.length; i++) {
+//                    //打印进程列表
+//                    System.out.println(taskName[i]+" "+taskPid[i]+" "+taskSessionName[i]+" "+taskSession[i]+" "+taskNec[i]);
+//                    count++;
+//                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return count;
+        return taskList;
     }
 
 
@@ -154,9 +173,23 @@ public class SystemUtil {
     }
 
 
+    public static void exeCmd(String cmd) {
+        String[] linuxCmd = new String[2];
+        switch (cmd){
+            case "lockscreen": linuxCmd[0]="xdg-screensaver";linuxCmd[1]="lock";break;
+            case "reboot": linuxCmd[0]="reboot";linuxCmd[1]="";break;
+            case "shutdown": linuxCmd[0]="shutdown";linuxCmd[1]="now";break;
+            default:break;
+        }
+        try {
+            Runtime.getRuntime().exec(linuxCmd);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public static void main(String[] args) {
-        SystemUtil.getAllTasks();
-        System.out.println(SystemUtil.getMacAddress());
+        exeCmd("lockscreen");
     }
 }
