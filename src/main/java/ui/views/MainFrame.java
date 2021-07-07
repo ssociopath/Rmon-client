@@ -41,7 +41,7 @@ public class MainFrame extends JFrame implements IRuleListener {
         socketClient.setIRuleListener(this);
         this.tableVales = tableVales;
         columnNames = new String[]{"权限号","主控用户","权限等级"};
-        permissions = new String[]{"允许操作","允许监控"};
+        permissions = new String[]{"允许操作","允许访问"};
         initView();
         event();
     }
