@@ -30,5 +30,5 @@ public class Constant {
 
     public static final int MAX_PKG_BYTE_LENGTH = 8*1024;
 
-    public static final int DEFAULT_SIZE = 1024;
+    public static final int DEFAULT_SIZE = 1080;
 }

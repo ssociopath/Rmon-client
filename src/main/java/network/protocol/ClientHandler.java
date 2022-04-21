@@ -64,7 +64,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
                 isSend = true;
                 ThreadPoolUtil.executor(()->{
                     while (isSend){
-                        wsMessage.setContent(new String(ScreenUtil.getDesktopScreen(size), StandardCharsets.ISO_8859_1));
+                        wsMessage.setContent(new String(SystemUtil.getDesktopScreen(size), StandardCharsets.ISO_8859_1));
                         client.sendData(Constant.IMAGE, JsonUtil.toJsonString(wsMessage).getBytes(StandardCharsets.UTF_8));
                         wsMessage.setContent(JsonUtil.toJsonString(SystemUtil.getAllTasks()));
                         client.sendData(Constant.TASK, JsonUtil.toJsonString(wsMessage).getBytes(StandardCharsets.UTF_8));
@@ -74,7 +74,12 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
             }
             case Constant.CMD: {
                 WsMessage wsMessage = JsonUtil.parseObject(content, WsMessage.class);
-                SystemUtil.exeCmd(wsMessage.getContent());
+                String cmd = wsMessage.getContent();
+                if(cmd.charAt(0)=='{'){
+                    SystemUtil.exeControl(cmd);
+                }else{
+                    SystemUtil.exeCmd(wsMessage.getContent());
+                }
                 break;
             }
             case Constant.RES_UPDATE:{

@@ -1,12 +1,18 @@
 package utils;
 
+import net.coobird.thumbnailator.Thumbnails;
+import network.vo.KeyCmd;
 import network.vo.Task;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,6 +27,37 @@ public class SystemUtil {
     private final static String OS_NAME = System.getProperties().getProperty("os.name");
     private static final Pattern MAC_PATTERN = Pattern.compile(".*((:?[0-9a-f]{2}[-:]){5}[0-9a-f]{2}).*",
             Pattern.CASE_INSENSITIVE);
+    private static Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+    private static Robot robot;
+
+    static {
+        try {
+            robot = new Robot();
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static byte[] getDesktopScreen(int size){
+        byte[] byteArray = null;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            BufferedImage image = robot.createScreenCapture(screenRect);
+            if(size>=screenRect.width||size == 1080){
+                ImageIO.write(image, "jpg", out);
+            }else{
+                Thumbnails.of(image)
+                        .width(size)
+                        .outputFormat("jpg")
+                        .toOutputStream(out);
+            }
+            byteArray = out.toByteArray();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return byteArray;
+    }
 
     public static List<Task> getAllTasks(){
         List<Task> taskList = new ArrayList<>();
@@ -172,8 +209,49 @@ public class SystemUtil {
         return MAC_ADDRESS;
     }
 
+    public static void exeControl(String cmd){
+        System.out.println(cmd);
+        KeyCmd keyCmd = JsonUtil.parseObject(cmd,KeyCmd.class);
+        String openType = keyCmd.getOpenType();
+        if("mousedown".equals(openType)){
+            int remoteClientX = keyCmd.getClientX() * screenRect.width/keyCmd.getImageWidth();
+            int remoteClientY = keyCmd.getClientY() * screenRect.height/keyCmd.getImageHeight();
 
-    public static void exeCmd(String cmd) {
+            robot.mouseMove( remoteClientX , remoteClientY );
+
+            int button = keyCmd.getButton();
+            if(button == 0) {
+                robot.mousePress(InputEvent.BUTTON1_MASK);//左键
+            }else if(button == 1) {
+                robot.mousePress(InputEvent.BUTTON2_MASK);//中间键
+            }else if(button == 2) {
+                robot.mousePress(InputEvent.BUTTON3_MASK);//右键
+            }
+        }else if("mouseup".equals(openType)){
+            int remoteClientX = keyCmd.getClientX() * screenRect.width/keyCmd.getImageWidth();
+            int remoteClientY = keyCmd.getClientY() * screenRect.height/keyCmd.getImageHeight();
+
+            robot.mouseMove( remoteClientX , remoteClientY );
+
+            int button = keyCmd.getButton();
+            if(button == 0) {
+                robot.mouseRelease(InputEvent.BUTTON1_MASK);//左键
+            }else if(button == 1) {
+                robot.mouseRelease(InputEvent.BUTTON2_MASK);//中间键
+            }else if(button == 2) {
+                robot.mouseRelease(InputEvent.BUTTON3_MASK);//右键
+            }
+        }else if("keydown".equals(openType)){
+            int keyCode = keyCmd.getKeyCode();
+            robot.keyPress(changeKeyCode(keyCode));
+        }else if("keyup".equals(openType)){
+            int keyCode = keyCmd.getKeyCode();
+            robot.keyRelease(changeKeyCode(keyCode));
+        }
+    }
+
+
+    public static void exeCmd(String cmd){
         String[] linuxCmd = new String[2];
         switch (cmd){
             case "lockscreen": linuxCmd[0]="xdg-screensaver";linuxCmd[1]="lock";break;
@@ -188,8 +266,32 @@ public class SystemUtil {
         }
     }
 
-
-    public static void main(String[] args) {
-        exeCmd("lockscreen");
+    private static int changeKeyCode(int sourceKeyCode){
+        //回车
+        if(sourceKeyCode == 13) return 10;
+        //,< 188 -> 44
+        if(sourceKeyCode == 188) return 44;
+        //.>在Js中为190，但在Java中为46
+        if(sourceKeyCode == 190) return 46;
+        // /?在Js中为191，但在Java中为47
+        if(sourceKeyCode == 191) return 47;
+        //;: 186 -> 59
+        if(sourceKeyCode == 186) return 59;
+        //[{ 219 -> 91
+        if(sourceKeyCode == 219) return 91;
+        //\| 220 -> 92
+        if(sourceKeyCode == 220) return 92;
+        //-_ 189->45
+        if(sourceKeyCode == 189) return 45;
+        //=+ 187->61
+        if(sourceKeyCode == 187) return 61;
+        //]} 221 -> 93
+        if(sourceKeyCode == 221) return 93;
+        //DEL
+        if(sourceKeyCode == 46) return 127;
+        //Ins
+        if(sourceKeyCode == 45) return 155;
+        return sourceKeyCode;
     }
+
 }
